@@ -454,6 +454,41 @@ class GifImageFile(ImageFile.ImageFile):
     def tell(self):
         return self.__frame
 
+    def __len__(self):
+        return self.n_frames
+
+    def __getitem__(self, frame):
+        if frame < 0:
+            frame = len(self) + frame
+        self.seek(0)
+        global_palette = self.palette
+        if frame == 0:
+            return self.copy()
+        self.seek(frame)
+        self.mode = "P"
+        transparency = getattr(self, "_frame_transparency", None)
+
+        self.im = Image.core.fill("P", self.size, transparency if transparency is not None else 0)
+        palette = getattr(self, "_frame_palette", global_palette)
+        self.im.putpalette(*palette.getdata())
+        if transparency is not None:
+            self.im.putpalettealpha(transparency)
+        tile = self.tile[0]
+        self.load()
+        frame_img = self.copy().crop(tile[1])
+        frame_img.offset = tile[1][:2]
+        # restore usual internal state (as an RGB/RGBA image)
+        self.seek(frame)
+        return frame_img
+
+
+
+
+
+
+
+
+
 
 # --------------------------------------------------------------------
 # Write GIF files
