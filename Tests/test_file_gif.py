@@ -1214,3 +1214,29 @@ def test_saving_rgba(tmp_path):
     with Image.open(out) as reloaded:
         reloaded_rgba = reloaded.convert("RGBA")
         assert reloaded_rgba.load()[0, 0][3] == 0
+
+
+
+def test_roundtrip_save_all(tmp_path):
+    # Single frame image
+    out = str(tmp_path / "temp.gif")
+    im = hopper()
+    im.save(out, save_all=True)
+    with Image.open(out) as reread:
+
+        assert_image_similar(reread.convert("RGB"), im, 50)
+
+
+def test_animated_len():
+    with Image.open("Tests/images/dispose_bgnd.gif") as im:
+        assert len(im) == 5
+
+
+def test_animated_getitem():
+    with Image.open("Tests/images/dispose_bgnd.gif") as im:
+        for i, expected_size in enumerate([(100, 100), (32, 32), (32, 32), (32, 32), (32, 32)]):
+            assert im[i].size == expected_size
+
+
+
+
